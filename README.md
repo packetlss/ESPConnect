@@ -49,8 +49,6 @@ Deploy the contents of `dist/` to any static HTTPS host. Browsers block Web Seri
 ├─ src/
 │  ├─ main.js        # Web Serial + esptool-js integration
 │  └─ style.css      # Basic UI styling
-└─ tools/
-   └─ usb-monitor.js # Legacy Node.js serial monitor (optional helper)
 ```
 
 ## License
