@@ -269,7 +269,6 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { ESPLoader, Transport } from 'esptool-js';
 import { useTheme } from 'vuetify';
-import disconnectedLogo from './assets/disconnected-logo.svg';
 import DeviceInfoTab from './components/DeviceInfoTab.vue';
 import FlashFirmwareTab from './components/FlashFirmwareTab.vue';
 import PartitionsTab from './components/PartitionsTab.vue';
