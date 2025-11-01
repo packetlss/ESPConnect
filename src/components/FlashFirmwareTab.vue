@@ -242,6 +242,61 @@
       Register Access
     </v-card-title>
     <v-card-text class="tools-card__body">
+      <v-autocomplete
+        v-if="registerOptions.length"
+        class="register-quick-select"
+        :items="registerOptions"
+        item-title="label"
+        item-value="address"
+        density="comfortable"
+        variant="outlined"
+        hide-details
+        label="Quick-select register"
+        :model-value="selectedRegisterAddress"
+        :return-object="false"
+        clearable
+        @update:model-value="handleRegisterSelect"
+      >
+        <template #item="{ props, item }">
+          <v-list-item v-bind="props">
+            <v-list-item-title>{{ item.raw.label }}</v-list-item-title>
+            <v-list-item-subtitle>{{ item.raw.address }}</v-list-item-subtitle>
+          </v-list-item>
+        </template>
+        <template #selection="{ item }">
+          <span>{{ item.raw.label }}</span>
+        </template>
+      </v-autocomplete>
+      <v-alert
+        v-if="selectedRegisterInfo"
+        type="info"
+        variant="tonal"
+        border="start"
+        density="comfortable"
+        class="register-info"
+      >
+        <div class="register-info__title">{{ selectedRegisterInfo.label }}</div>
+        <div class="register-info__address">{{ selectedRegisterInfo.address }}</div>
+        <div class="register-info__description">{{ selectedRegisterInfo.description }}</div>
+        <div class="register-info__link" v-if="selectedRegisterInfo.link">
+          <a :href="selectedRegisterInfo.link" target="_blank" rel="noopener"
+            >View register reference</a
+          >
+        </div>
+      </v-alert>
+      <v-alert
+        v-else-if="registerReference"
+        type="info"
+        variant="tonal"
+        border="start"
+        density="comfortable"
+        class="register-info"
+      >
+        <div class="register-info__title">{{ registerReference.title }}</div>
+        <div class="register-info__link">
+          <a :href="registerReference.url" target="_blank" rel="noopener">Open technical reference</a>
+        </div>
+      </v-alert>
       <v-row dense>
         <v-col cols="12" md="6">
           <v-text-field
@@ -345,7 +400,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch } from 'vue';
+
+const props = defineProps({
   flashOffset: {
     type: String,
     required: true,
@@ -389,6 +446,14 @@ defineProps({
   registerValue: {
     type: String,
     default: '',
+  },
+  registerOptions: {
+    type: Array,
+    default: () => [],
+  },
+  registerReference: {
+    type: Object,
+    default: null,
   },
   registerReadResult: {
     type: String,
@@ -475,11 +540,60 @@ const emit = defineEmits([
   'download-used-flash',
   'erase-flash',
   'cancel-download',
+  'select-register',
 ]);
 
 function handlePresetChange(value) {
   emit('update:selectedPreset', value);
   emit('apply-preset', value);
+}
+
+const selectedRegisterAddress = ref(null);
+const selectedRegisterInfo = ref(null);
+
+function normalizeRegisterAddress(value) {
+  if (!value) return null;
+  if (typeof value !== 'string') {
+    value = String(value);
+  }
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const numeric = trimmed.startsWith('0x') ? Number.parseInt(trimmed, 16) : Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(numeric)) return null;
+  return '0x' + numeric.toString(16).toUpperCase();
+}
+
+function syncSelectedRegister() {
+  const normalized = normalizeRegisterAddress(props.registerAddress);
+  const match =
+    normalized &&
+    props.registerOptions.find(option => normalizeRegisterAddress(option.address) === normalized);
+  selectedRegisterAddress.value = match ? match.address : null;
+  selectedRegisterInfo.value = match || null;
+}
+
+watch(
+  () => [props.registerAddress, props.registerOptions],
+  () => {
+    syncSelectedRegister();
+  },
+  { immediate: true }
+);
+
+function handleRegisterSelect(value) {
+  if (!value) {
+    selectedRegisterAddress.value = null;
+    selectedRegisterInfo.value = null;
+    emit('select-register', null);
+    return;
+  }
+  const normalized = normalizeRegisterAddress(value);
+  const match =
+    normalized &&
+    props.registerOptions.find(option => normalizeRegisterAddress(option.address) === normalized);
+  selectedRegisterAddress.value = match ? match.address : value;
+  selectedRegisterInfo.value = match || null;
+  emit('select-register', value);
 }
 </script>
 
@@ -548,5 +662,34 @@ function handlePresetChange(value) {
 
 .progress-dialog__actions {
   justify-content: flex-end;
+}
+
+.register-quick-select {
+  max-width: 420px;
+}
+
+.register-info {
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.register-info__title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.register-info__address {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.register-info__description {
+  margin-bottom: 4px;
+}
+
+.register-info__link a {
+  color: inherit;
+  text-decoration: underline;
 }
 </style>

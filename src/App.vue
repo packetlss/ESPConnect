@@ -4,9 +4,9 @@
       <v-container class="py-10" max-width="1100">
         <v-card elevation="8" class="pa-6">
           <v-card-title class="d-flex align-center pa-0 mb-1">
-            <div class="text-h5 font-weight-semibold">
+            <div class="app-title text-h5 font-weight-semibold">
               ESPConnect
-              <span>v{{ APP_VERSION }}</span>
+              <span class="app-version">v{{ APP_VERSION }}</span>
             </div>
           </v-card-title>
           <v-card-subtitle class="pa-0 text-body-2 text-medium-emphasis mb-3">
@@ -79,7 +79,7 @@
             color="surface"
             variant="text"
             density="comfortable"
-            href="https://github.com/thelastoutpostworkshop/ESPConnect"
+            href="https://github.com/thelastoutpostworkshop/ESP32PartitionBuilder"
             target="_blank"
             rel="noopener"
           >
@@ -175,6 +175,8 @@
                 :register-read-result="registerReadResult"
                 :register-status="registerStatus"
                 :register-status-type="registerStatusType"
+                :register-options="registerOptions"
+                :register-reference="registerReference"
                 :md5-offset="md5Offset"
                 :md5-length="md5Length"
                 :md5-result="md5Result"
@@ -206,6 +208,7 @@
                 @download-used-flash="handleDownloadUsedFlash"
                 @erase-flash="handleEraseFlash"
                 @cancel-download="handleCancelDownload"
+                @select-register="handleSelectRegister"
               />
             </v-window-item>
 
@@ -274,6 +277,7 @@ import FlashFirmwareTab from './components/FlashFirmwareTab.vue';
 import PartitionsTab from './components/PartitionsTab.vue';
 import SessionLogTab from './components/SessionLogTab.vue';
 import SerialMonitorTab from './components/SerialMonitorTab.vue';
+import registerGuides from './data/register-guides.json';
 
 const APP_VERSION = '0.1';
 const APP_TAGLINE = 'Flash, back up, and troubleshoot your ESP32 straight from the browser.';
@@ -716,6 +720,21 @@ const registerValue = ref('');
 const registerReadResult = ref(null);
 const registerStatus = ref(null);
 const registerStatusType = ref('info');
+const registerOptions = ref([]);
+const registerReference = ref(null);
+const registerOptionLookup = computed(() => {
+  const map = new Map();
+  for (const option of registerOptions.value) {
+    const normalized = normalizeRegisterAddressValue(option.address);
+    if (normalized && !map.has(normalized)) {
+      map.set(normalized, {
+        ...option,
+        address: normalized,
+      });
+    }
+  }
+  return map;
+});
 const md5Offset = ref('0x0');
 const md5Length = ref('');
 const md5Result = ref(null);
@@ -826,6 +845,42 @@ watch(selectedBaud, async (value, oldValue) => {
     baudChangeBusy.value = false;
   }
 });
+
+function normalizeRegisterAddressValue(value) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const stringValue = typeof value === 'string' ? value.trim() : value.toString();
+  if (!stringValue) {
+    return null;
+  }
+  const numeric = stringValue.startsWith('0x') || stringValue.startsWith('0X')
+    ? Number.parseInt(stringValue, 16)
+    : Number.parseInt(stringValue, 10);
+  if (!Number.isFinite(numeric) || numeric < 0) {
+    return null;
+  }
+  return '0x' + numeric.toString(16).toUpperCase();
+}
+
+function applyRegisterGuide(chipKey) {
+  const guide = chipKey ? registerGuides?.[chipKey] : undefined;
+  if (!guide) {
+    registerOptions.value = [];
+    registerReference.value = null;
+    return;
+  }
+  registerReference.value = guide.reference || null;
+  registerOptions.value = (guide.registers || []).map(entry => {
+    const normalized = normalizeRegisterAddressValue(entry.address);
+    return {
+      label: entry.name,
+      address: normalized || entry.address,
+      description: entry.description || '',
+      link: entry.url || guide.reference?.url || null,
+    };
+  });
+}
 
 const partitionColorOverrides = {
   factory: '#f8b26a',
@@ -1660,6 +1715,7 @@ async function connect() {
     const macLabel = macAddress || 'Unavailable';
 
     const chipKey = chip?.CHIP_NAME || chipName;
+    applyRegisterGuide(chipKey);
     const facts = [];
     const pushFact = (label, value) => {
       if (!value) return;
@@ -1871,6 +1927,8 @@ function resetMaintenanceState() {
   registerReadResult.value = null;
   registerValue.value = '';
   registerAddress.value = '0x0';
+  registerOptions.value = [];
+  registerReference.value = null;
   md5Result.value = null;
   md5Status.value = null;
   md5StatusType.value = 'info';
@@ -1884,6 +1942,26 @@ function resetMaintenanceState() {
   downloadProgress.visible = false;
   downloadProgress.value = 0;
   downloadProgress.label = '';
+}
+
+function handleSelectRegister(address) {
+  if (!address) {
+    return;
+  }
+  const normalized = normalizeRegisterAddressValue(address);
+  if (!normalized) {
+    return;
+  }
+  const guide = registerOptionLookup.value.get(normalized);
+  registerAddress.value = guide?.address ?? normalized;
+  if (guide) {
+    registerReadResult.value = null;
+    registerStatusType.value = 'info';
+    registerStatus.value = guide.description
+      ? `${guide.label}: ${guide.description}`
+      : `${guide.label} selected.`;
+    appendLog(`Quick-selected register ${guide.label} (${guide.address}).`, '[debug]');
+  }
 }
 
 async function handleReadRegister() {
