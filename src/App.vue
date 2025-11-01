@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-app>
     <v-main>
       <v-container class="py-10" max-width="1100">
@@ -73,7 +73,7 @@
             color="surface"
             variant="text"
             density="comfortable"
-            href="https://github.com/thelastoutpostworkshop/ESP32PartitionBuilder"
+            href="https://github.com/thelastoutpostworkshop/ESPConnect"
             target="_blank"
             rel="noopener"
           >
