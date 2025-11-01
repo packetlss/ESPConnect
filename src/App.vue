@@ -1963,6 +1963,8 @@ async function downloadFlashRegion(offset, length, options = {}) {
   const baudLabel = baudNumber.toLocaleString() + ' bps';
   appendLog('Downloading ' + displayLabel + ' at ' + baudLabel + '.', '[debug]');
 
+  const CANCEL_ERROR_MESSAGE = 'Download cancelled by user';
+  const MAX_CHUNK_SIZE = 0x10000;
   if (!suppressStatus) {
     flashReadStatusType.value = 'info';
     flashReadStatus.value = 'Downloading ' + displayLabel + ' @ ' + baudLabel + '...';
@@ -1973,34 +1975,102 @@ async function downloadFlashRegion(offset, length, options = {}) {
 
   downloadCancelRequested.value = false;
 
-  let buffer;
+  const chunkBuffers = [];
+  const chunkSize = Math.max(0x1000, Math.min(MAX_CHUNK_SIZE, length));
+  let totalReceived = 0;
+  let buffer = null;
+  let cancelled = false;
   try {
-    buffer = await loader.value.readFlash(offset, length, (_packet, received, total) => {
+    while (totalReceived < length) {
       if (downloadCancelRequested.value) {
-        throw new Error('Download cancelled by user');
+        cancelled = true;
+        break;
       }
-      const progressValue = total > 0 ? Math.min(100, Math.floor((received / total) * 100)) : 0;
-      const progressLabel = total
-        ? 'Downloading ' +
-          displayLabel +
-          ' @ ' +
-          baudLabel +
-          ' — ' +
-          received.toLocaleString() +
-          ' of ' +
-          total.toLocaleString() +
-          ' bytes'
-        : 'Downloading ' + displayLabel + ' @ ' + baudLabel;
-      if (!suppressStatus) {
-        downloadProgress.visible = true;
-        downloadProgress.value = progressValue;
-        downloadProgress.label = progressLabel;
-        flashReadStatusType.value = 'info';
-        flashReadStatus.value = progressLabel;
+      const remaining = length - totalReceived;
+      const currentChunkSize = Math.min(chunkSize, remaining);
+      const chunkOffset = offset + totalReceived;
+      const chunkBase = totalReceived;
+      const chunkBuffer = await loader.value.readFlash(
+        chunkOffset,
+        currentChunkSize,
+        (_packet, received) => {
+          const chunkReceived = Math.min(received, currentChunkSize);
+          const overallReceived = chunkBase + chunkReceived;
+          const progressValue = length
+            ? Math.min(100, Math.floor((overallReceived / length) * 100))
+            : 0;
+          let progressLabel =
+            'Downloading ' +
+            displayLabel +
+            ' @ ' +
+            baudLabel +
+            ' — ' +
+            overallReceived.toLocaleString() +
+            ' of ' +
+            length.toLocaleString() +
+            ' bytes';
+          if (downloadCancelRequested.value) {
+            progressLabel =
+              'Stopping download of ' +
+              displayLabel +
+              ' after current chunk... (' +
+              overallReceived.toLocaleString() +
+              ' of ' +
+              length.toLocaleString() +
+              ' bytes)';
+          }
+          if (!suppressStatus) {
+            downloadProgress.visible = true;
+            downloadProgress.value = progressValue;
+            downloadProgress.label = progressLabel;
+            flashReadStatusType.value = 'info';
+            flashReadStatus.value = progressLabel;
+          }
+        }
+      );
+      if (chunkBuffer.length !== currentChunkSize) {
+        throw new Error(
+          'Incomplete flash chunk (expected ' +
+            currentChunkSize +
+            ' bytes, received ' +
+            chunkBuffer.length +
+            ').'
+        );
       }
-    });
+      chunkBuffers.push(chunkBuffer);
+      totalReceived += chunkBuffer.length;
+      if (downloadCancelRequested.value) {
+        cancelled = true;
+        break;
+      }
+    }
+
+    if (cancelled) {
+      throw new Error(CANCEL_ERROR_MESSAGE);
+    }
+
+    if (totalReceived !== length) {
+      throw new Error(
+        'Incomplete flash read (expected ' +
+          length +
+          ' bytes, received ' +
+          totalReceived +
+          ').'
+      );
+    }
+
+    if (chunkBuffers.length === 1) {
+      buffer = chunkBuffers[0];
+    } else {
+      buffer = new Uint8Array(totalReceived);
+      let writeOffset = 0;
+      for (const chunk of chunkBuffers) {
+        buffer.set(chunk, writeOffset);
+        writeOffset += chunk.length;
+      }
+    }
   } finally {
-    if (downloadCancelRequested.value) {
+    if (cancelled && !suppressStatus) {
       downloadProgress.visible = false;
     }
     downloadCancelRequested.value = false;
