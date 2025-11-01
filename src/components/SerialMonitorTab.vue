@@ -67,6 +67,12 @@
         <pre class="monitor-terminal__output">
 {{ displayText }}
         </pre>
+        <div
+          v-if="!hasMonitorOutput"
+          class="monitor-terminal__empty"
+        >
+          Monitor output will appear here once started.
+        </div>
       </v-card-text>
     </v-card>
 
@@ -111,9 +117,7 @@ const props = defineProps({
 const emit = defineEmits(['start-monitor', 'stop-monitor', 'clear-monitor', 'reset-board']);
 
 const terminalEl = ref(null);
-const displayText = computed(
-  () => props.monitorText || 'Monitor output will appear here once started.'
-);
+const displayText = computed(() => props.monitorText);
 const hasMonitorOutput = computed(() => Boolean(props.monitorText && props.monitorText.length));
 
 watch(
@@ -239,10 +243,24 @@ onMounted(() => {
   white-space: pre-wrap;
   color: rgba(226, 232, 240, 0.9);
   min-height: 260px;
+  pointer-events: none;
 }
 
 .monitor-alert {
   margin-top: 4px;
+}
+
+.monitor-terminal__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(226, 232, 240, 0.55);
+  pointer-events: none;
+  padding: 20px;
 }
 
 @media (max-width: 959px) {
