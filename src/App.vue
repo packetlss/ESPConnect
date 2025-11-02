@@ -2,9 +2,7 @@
   <v-app>
     <v-navigation-drawer permanent app elevation="1">
       <v-list>
-        <v-list-item prepend-icon="mdi-transit-connection-variant"
-        title="ESPConnect"
-        :subtitle="'v'+APP_VERSION">
+        <v-list-item prepend-icon="mdi-transit-connection-variant" title="ESPConnect" :subtitle="'v' + APP_VERSION">
         </v-list-item>
       </v-list>
       <v-list nav density="comfortable">
@@ -27,41 +25,39 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
-    <v-app-bar class="status-bar" color="transparent" app flat height="80">
-      <v-container class="status-bar__container" max-width="1100">
-        <div class="status-actions">
-          <v-btn :class="['status-button', { 'status-button--active': !connected && !busy }]" color="primary"
-            variant="outlined" density="comfortable" :disabled="!serialSupported || connected || busy" @click="connect">
-            <v-icon start>mdi-usb-flash-drive</v-icon>
-            Connect
-          </v-btn>
-          <v-btn :class="['status-button', { 'status-button--active': connected }]" color="error" variant="outlined"
-            density="comfortable" :disabled="!connected || busy" @click="disconnect">
-            <v-icon start>mdi-close-circle</v-icon>
-            Disconnect
-          </v-btn>
-          <v-select v-model="selectedBaud" :items="baudrateOptions" label="Baud rate" density="compact"
-            variant="outlined" hide-details class="status-select"
-            :disabled="busy || flashInProgress || maintenanceBusy || baudChangeBusy || monitorActive" />
-        </div>
-        <v-spacer />
-        <v-btn :title="`Switch to ${isDarkTheme ? 'light' : 'dark'} theme`" variant="text" icon color="surface"
-          size="small" class="status-theme-toggle" @click="toggleTheme">
-          <v-icon>{{ themeIcon }}</v-icon>
+    <v-app-bar app :elevation="8">
+      <div class="status-actions">
+        <v-btn :class="['status-button', { 'status-button--active': !connected && !busy }]" color="primary"
+          variant="outlined" density="comfortable" :disabled="!serialSupported || connected || busy" @click="connect">
+          <v-icon start>mdi-usb-flash-drive</v-icon>
+          Connect
         </v-btn>
-        <v-chip :color="connected ? 'success' : 'grey-darken-1'" class="text-capitalize" variant="elevated"
-          density="comfortable">
-          <template #prepend>
-            <v-icon v-if="connected" start class="status-chip-icon status-chip-icon--connected">
-              mdi-usb-port
-            </v-icon>
-            <v-icon v-else start class="status-chip-icon status-chip-icon--disconnected">
-              mdi-usb-c-port
-            </v-icon>
-          </template>
-          {{ connectionChipLabel }}
-        </v-chip>
-      </v-container>
+        <v-btn :class="['status-button', { 'status-button--active': connected }]" color="error" variant="outlined"
+          density="comfortable" :disabled="!connected || busy" @click="disconnect">
+          <v-icon start>mdi-close-circle</v-icon>
+          Disconnect
+        </v-btn>
+        <v-select v-model="selectedBaud" :items="baudrateOptions" label="Baud rate" density="compact" variant="outlined"
+          hide-details class="status-select"
+          :disabled="busy || flashInProgress || maintenanceBusy || baudChangeBusy || monitorActive" />
+      </div>
+      <v-spacer />
+      <v-btn :title="`Switch to ${isDarkTheme ? 'light' : 'dark'} theme`" variant="text" icon color="surface"
+        size="small" class="status-theme-toggle" @click="toggleTheme">
+        <v-icon>{{ themeIcon }}</v-icon>
+      </v-btn>
+      <v-chip :color="connected ? 'success' : 'grey-darken-1'" class="text-capitalize" variant="elevated"
+        density="comfortable">
+        <template #prepend>
+          <v-icon v-if="connected" start class="status-chip-icon status-chip-icon--connected">
+            mdi-usb-port
+          </v-icon>
+          <v-icon v-else start class="status-chip-icon status-chip-icon--disconnected">
+            mdi-usb-c-port
+          </v-icon>
+        </template>
+        {{ connectionChipLabel }}
+      </v-chip>
     </v-app-bar>
     <v-main>
       <v-container class="py-10" max-width="1100">
