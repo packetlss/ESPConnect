@@ -675,6 +675,7 @@ const appMetadataLoading = ref(false);
 const appMetadataError = ref(null);
 const activeAppSlotId = ref(null);
 const appActiveSummary = ref('Active slot unknown.');
+const appMetadataLoaded = ref(false);
 const logBuffer = ref('');
 const monitorText = ref('');
 const monitorActive = ref(false);
@@ -819,6 +820,22 @@ watch(selectedBaud, async (value, oldValue) => {
     baudChangeBusy.value = false;
   }
 });
+
+watch(activeTab, value => {
+  if (value === 'apps') {
+    void loadAppMetadata();
+  }
+});
+
+watch(
+  () => partitionTable.value,
+  () => {
+    appMetadataLoaded.value = false;
+    if (activeTab.value === 'apps' && connected.value) {
+      void loadAppMetadata({ force: true });
+    }
+  }
+);
 
 function normalizeRegisterAddressValue(value) {
   if (value === null || value === undefined) {
@@ -1083,6 +1100,7 @@ async function analyzeAppPartitions(loaderInstance, partitions) {
   appPartitions.value = results;
   activeAppSlotId.value = activeSlotId;
   appActiveSummary.value = activeSummary;
+  appMetadataLoaded.value = true;
 }
 
 function resetAppMetadata() {
@@ -1091,6 +1109,36 @@ function resetAppMetadata() {
   appMetadataError.value = null;
   activeAppSlotId.value = null;
   appActiveSummary.value = 'Active slot unknown.';
+  appMetadataLoaded.value = false;
+}
+
+async function loadAppMetadata(options = {}) {
+  const force = options.force ?? false;
+  if (appMetadataLoading.value) {
+    return;
+  }
+  if (!force && appMetadataLoaded.value) {
+    return;
+  }
+  if (!connected.value || !loader.value) {
+    return;
+  }
+  const partitions = partitionTable.value;
+  if (!Array.isArray(partitions) || !partitions.length) {
+    return;
+  }
+  appMetadataLoading.value = true;
+  appMetadataError.value = null;
+  appMetadataLoaded.value = false;
+  try {
+    await analyzeAppPartitions(loader.value, partitions);
+  } catch (error) {
+    console.warn('Failed to analyze app partitions', error);
+    appMetadataError.value = error?.message || String(error);
+    appMetadataLoaded.value = false;
+  } finally {
+    appMetadataLoading.value = false;
+  }
 }
 
 function applyRegisterGuide(chipKey) {
@@ -2123,15 +2171,7 @@ async function connect() {
 
     const partitions = await readPartitionTable(loader.value);
     partitionTable.value = partitions;
-    appMetadataLoading.value = true;
-    try {
-      await analyzeAppPartitions(loader.value, partitions);
-    } catch (error) {
-      console.warn('Failed to analyze app partitions', error);
-      appMetadataError.value = error?.message || String(error);
-    } finally {
-      appMetadataLoading.value = false;
-    }
+    appMetadataLoaded.value = false;
 
     if (portDetails) {
       pushFact('USB Bridge', formatUsbBridge(portDetails));
