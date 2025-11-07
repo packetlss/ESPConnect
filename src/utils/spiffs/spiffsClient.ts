@@ -4,6 +4,7 @@ import {
   SpiffsImage,
   SPIFFS_PH_FLAG_DELET,
   SPIFFS_PH_FLAG_INDEX,
+  SPIFFS_PH_FLAG_IXDELE,
 } from './spiffs';
 export { DEFAULT_SPIFFS_PRESETS } from './spiffsPresets';
 export type { SpiffsPreset } from './spiffsPresets';
@@ -238,6 +239,7 @@ class SpiffsImageEncoder {
     this.writeUnsigned(address + this.config.objIdSize, spanIx, this.config.spanIxSize);
     const flags =
       SPIFFS_PH_FLAG_DELET |
+      SPIFFS_PH_FLAG_IXDELE |
       (isIndex ? SPIFFS_PH_FLAG_INDEX : 0);
     this.image[address + this.config.objIdSize + this.config.spanIxSize] = flags;
     this.lookupEntries[slot] = objIdRaw;
