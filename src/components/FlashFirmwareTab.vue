@@ -47,7 +47,22 @@
             density="comfortable"
             :disabled="busy || maintenanceBusy"
             @update:model-value="value => handlePresetChange(value)"
-          />
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props" class="partition-select__item">
+                <template #prepend>
+                  <span class="partition-select__swatch" :style="{ backgroundColor: resolvePartitionColor(item?.raw) }" />
+                </template>
+                <v-list-item-title>{{ item.raw.label }}</v-list-item-title>
+              </v-list-item>
+            </template>
+            <template #selection="{ item }">
+              <span v-if="item" class="partition-select__selection">
+                <span class="partition-select__swatch" :style="{ backgroundColor: resolvePartitionColor(item.raw) }" />
+                <span>{{ item.raw.label }}</span>
+              </span>
+            </template>
+          </v-select>
         </v-col>
       </v-row>
 
@@ -139,7 +154,22 @@
           clearable
           :disabled="busy || maintenanceBusy"
           @update:model-value="value => emit('update:selectedPartition', value)"
-        />
+        >
+          <template #item="{ props, item }">
+            <v-list-item v-bind="props" class="partition-select__item">
+              <template #prepend>
+                <span class="partition-select__swatch" :style="{ backgroundColor: resolvePartitionColor(item?.raw) }" />
+              </template>
+              <v-list-item-title>{{ item.raw.label }}</v-list-item-title>
+            </v-list-item>
+          </template>
+          <template #selection="{ item }">
+            <span v-if="item" class="partition-select__selection">
+              <span class="partition-select__swatch" :style="{ backgroundColor: resolvePartitionColor(item.raw) }" />
+              <span>{{ item.raw.label }}</span>
+            </span>
+          </template>
+        </v-select>
         <div class="tools-card__actions partition-tools__actions">
           <v-btn
             color="primary"
@@ -327,7 +357,22 @@
         :model-value="integrityPartition"
         :disabled="busy || maintenanceBusy"
         @update:model-value="handleIntegrityPartitionSelect"
-      />
+      >
+        <template #item="{ props, item }">
+          <v-list-item v-bind="props" class="partition-select__item">
+            <template #prepend>
+              <span class="partition-select__swatch" :style="{ backgroundColor: resolvePartitionColor(item?.raw) }" />
+            </template>
+            <v-list-item-title>{{ item.raw.label }}</v-list-item-title>
+          </v-list-item>
+        </template>
+        <template #selection="{ item }">
+          <span v-if="item" class="partition-select__selection">
+            <span class="partition-select__swatch" :style="{ backgroundColor: resolvePartitionColor(item.raw) }" />
+            <span>{{ item.raw.label }}</span>
+          </span>
+        </template>
+      </v-select>
       <p v-if="partitionOptions.length" class="integrity-helper">
         Selecting a partition will auto-fill the offset and length fields below.
       </p>
@@ -628,6 +673,15 @@ function handleIntegrityPartitionSelect(value) {
   emit('update:integrityPartition', value);
 }
 
+const PARTITION_COLOR_FALLBACK = 'var(--v-theme-primary)';
+
+function resolvePartitionColor(option) {
+  if (option && typeof option === 'object' && option.color) {
+    return option.color;
+  }
+  return PARTITION_COLOR_FALLBACK;
+}
+
 function normalizeRegisterAddress(value) {
   if (!value) return null;
   if (typeof value !== 'string') {
@@ -773,6 +827,24 @@ function handleRegisterSelect(value) {
 .register-info__link a {
   color: inherit;
   text-decoration: underline;
+}
+
+.partition-select__item {
+  gap: 10px;
+}
+
+.partition-select__selection {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.partition-select__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: inline-block;
 }
 
 .advanced-warning {
