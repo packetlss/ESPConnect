@@ -4723,10 +4723,6 @@ async function connect() {
       : typeof featuresRaw === 'string'
         ? featuresRaw.split(/,\s*/)
         : [];
-    const hasOctalFlash =
-      featureList.some(
-        feature => typeof feature === 'string' && feature.toUpperCase().includes('OCTAL')
-      );
 
     const crystalLabel =
       typeof crystalFreq === 'number' ? `${Number(crystalFreq).toFixed(0)} MHz` : null;
