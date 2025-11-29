@@ -74,8 +74,8 @@
 
           <div v-if="details.factGroups?.length" class="detail-groups">
             <v-row dense class="detail-group-row">
-              <v-col v-for="group in details.factGroups" :key="group.title" cols="12" md="6">
-                <v-card elevation="0" variant="tonal">
+              <v-col v-for="group in details.factGroups" :key="group.title" cols="12" md="6" class="">
+                <v-card elevation="0" variant="tonal" class="detail-card">
                   <v-card-title>
                     <v-icon class="me-2">{{ group.icon }}</v-icon>
                     {{ group.title }}
@@ -552,6 +552,7 @@ const featurePreview = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .device-info-reveal-enter-active,
   .device-info-reveal-leave-active {
     transition: none;
