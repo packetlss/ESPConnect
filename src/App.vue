@@ -609,7 +609,6 @@ import {
   FATFS_DEFAULT_BLOCK_SIZE,
 } from './constants/filesystems';
 import {
-  DEBUG_SERIAL,
   DEFAULT_FLASH_BAUD,
   DEFAULT_ROM_BAUD,
   MONITOR_BAUD,
@@ -617,7 +616,6 @@ import {
   TIMEOUT_CONNECT,
 } from './constants/serial';
 import {
-  APP_BASE_URL,
   APP_DESCRIPTOR_LENGTH,
   APP_DESCRIPTOR_MAGIC,
   APP_IMAGE_HEADER_MAGIC,
