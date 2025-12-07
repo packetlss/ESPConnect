@@ -431,8 +431,6 @@ export function createEsptoolClient({
 
       // const securityInfo = await loader.getSecurityInfo();
 
-
-      status('Reading chip information...');
       return { chipName, macAddress };
     } finally {
       setBusy(false);
