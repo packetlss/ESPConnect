@@ -50,7 +50,7 @@ export const USB_BRIDGE_CAPABILITIES: Record<number, UsbVendorInfo> = {
   0x10c4: {
     vendorName: "Silicon Labs",
     products: {
-      0xea60: { name: "CP2102(n)", maxBaudrate: 921_600 },
+      0xea60: { name: "CP2102(n)", maxBaudrate: 3_000_000 },
       0xea70: { name: "CP2105", maxBaudrate: 2_000_000 },
       0xea71: { name: "CP2108", maxBaudrate: 2_000_000 },
     },
