@@ -126,7 +126,7 @@ export async function readEsp32S3Metadata(loader: Esp32S3Loader): Promise<Esp32S
   const psramVendor = await safeCall(getPsramVendor);
 
   const features = await safeCall(async () => {
-    const list = ['Wi-Fi', 'BLE'];
+    const list = ['Wi-Fi', 'BLE', 'Dual Core', '240 MHz'];
     const flashMap: Record<number, string | null | undefined> = {
       0: null,
       1: 'Embedded Flash 8MB',
