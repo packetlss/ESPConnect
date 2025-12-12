@@ -40,14 +40,14 @@ export const MEMORY_MAP: Array<[number, number, string]> = [
   [0x600fe000, 0x60100000, 'MEM_INTERNAL2'],
 ];
 
-type Loader = {
-  chipName?: string;
-  chipRevision?: number;
-  macAddr?: () => number[];
-  readReg: (addr: number) => Promise<number>;
-};
+// type Loader = {
+//   chipName?: string;
+//   chipRevision?: number;
+//   macAddr?: () => number[];
+//   readReg: (addr: number) => Promise<number>;
+// };
 
-export async function readEsp32H2Metadata(loader: Loader) {
+export async function readEsp32H2Metadata(loader: any) {
   const readEfuse = async (wordIndex: number) => loader.readReg(EFUSE_BLOCK1_ADDR + 4 * wordIndex);
 
   const getPkgVersion = async () => {

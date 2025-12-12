@@ -90,14 +90,14 @@ export const KEY_PURPOSES: Record<number, string> = {
   15: 'XTS_AES_128_KEY_PSRAM',
 };
 
-type Loader = {
-  chipName?: string;
-  chipRevision?: number;
-  macAddr?: () => number[];
-  readReg: (addr: number) => Promise<number>;
-};
+// type Loader = {
+//   chipName?: string;
+//   chipRevision?: number;
+//   macAddr?: () => number[];
+//   readReg: (addr: number) => Promise<number>;
+// };
 
-export async function readEsp32C61Metadata(loader: Loader) {
+export async function readEsp32C61Metadata(loader: any) {
   const readEfuse = async (wordIndex: number) => loader.readReg(EFUSE_BLOCK1_ADDR + 4 * wordIndex);
 
   const getPkgVersion = async () => {

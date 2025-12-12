@@ -59,14 +59,14 @@ export const SPI_W0_OFFS = 0x80;
 export const SPI_MOSI_DLEN_OFFS = 0x28;
 export const SPI_MISO_DLEN_OFFS = 0x2c;
 
-type Loader = {
-  chipName?: string;
-  chipRevision?: number;
-  macAddr?: () => number[];
-  readReg: (addr: number) => Promise<number>;
-};
+// type Loader = {
+//   chipName?: string;
+//   chipRevision?: number;
+//   macAddr?: () => number[];
+//   readReg: (addr: number) => Promise<number>;
+// };
 
-export async function readEsp32Metadata(loader: Loader) {
+export async function readEsp32Metadata(loader: any) {
   const readEfuse = async (offset: number) => loader.readReg(EFUSE_RD_REG_BASE + 4 * offset);
 
   const getPkgVersion = async () => {

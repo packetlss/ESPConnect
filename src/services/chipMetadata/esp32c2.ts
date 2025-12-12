@@ -33,17 +33,17 @@ export const MEMORY_MAP: Array<[number, number, string]> = [
   [0x4037c000, 0x403c0000, 'IRAM'],
 ];
 
-type Loader = {
-  chipName?: string;
-  chipRevision?: number;
-  macAddr?: () => number[];
-  readReg: (addr: number) => Promise<number>;
-  // transport?: { baudrate?: number };
-  // info?: (msg: string) => void;
-  // changeBaud?: () => Promise<void>;
-};
+// type Loader = {
+//   chipName?: string;
+//   chipRevision?: number;
+//   macAddr?: () => number[];
+//   readReg: (addr: number) => Promise<number>;
+//   // transport?: { baudrate?: number };
+//   // info?: (msg: string) => void;
+//   // changeBaud?: () => Promise<void>;
+// };
 
-export async function readEsp32C2Metadata(loader: Loader) {
+export async function readEsp32C2Metadata(loader: any) {
   const readEfuse = async (wordIndex: number) => loader.readReg(MAC_EFUSE_REG + 4 * wordIndex);
 
   const getPkgVersion = async () => {

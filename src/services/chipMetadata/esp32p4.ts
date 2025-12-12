@@ -90,14 +90,14 @@ export const KEY_PURPOSES: Record<number, string> = {
   12: 'KM_INIT_KEY',
 };
 
-type Loader = {
-  chipName?: string;
-  chipRevision?: number;
-  macAddr?: () => number[];
-  readReg: (addr: number) => Promise<number>;
-};
+// type Loader = {
+//   chipName?: string;
+//   chipRevision?: number;
+//   macAddr?: () => number[];
+//   readReg: (addr: number) => Promise<number>;
+// };
 
-export async function readEsp32P4Metadata(loader: Loader) {
+export async function readEsp32P4Metadata(loader: any) {
   const readEfuse = async (wordIndex: number) => loader.readReg(EFUSE_BLOCK1_ADDR + 4 * wordIndex);
 
   const getPkgVersion = async () => {

@@ -47,15 +47,15 @@ export const SPI_MOSI_DLEN_OFFS = 0x0; // not in esp8266
 export const SPI_MISO_DLEN_OFFS = 0x0; // not in esp8266
 export const SPI_W0_OFFS = 0x40;
 
-type Loader = {
-  chipName?: string;
-  chipRevision?: number;
-  macAddr?: () => number[];
-  readReg: (addr: number) => Promise<number>;
-  // transport?: { baudrate?: number };
-};
+// type Loader = {
+//   chipName?: string;
+//   chipRevision?: number;
+//   macAddr?: () => number[];
+//   readReg: (addr: number) => Promise<number>;
+//   // transport?: { baudrate?: number };
+// };
 
-export async function readEsp8266Metadata(loader: Loader) {
+export async function readEsp8266Metadata(loader: any) {
   const readEfuse = async (offset: number) => {
     const addr = EFUSE_RD_REG_BASE + 4 * offset;
     return loader.readReg(addr);

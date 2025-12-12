@@ -31,12 +31,12 @@ export const MEMORY_MAP: Array<[number, number, string]> = [
   [0x600fe000, 0x60100000, 'MEM_INTERNAL2'],
 ];
 
-type Esp32C3Loader = {
-  readReg: (addr: number) => Promise<number>;
-  macAddr?: () => number[];
-  chipRevision?: number;
-  chipName?: string;
-};
+// type Esp32C3Loader = {
+//   readReg: (addr: number) => Promise<number>;
+//   macAddr?: () => number[];
+//   chipRevision?: number;
+//   chipName?: string;
+// };
 
 type Esp32C3Metadata = {
   description: string | undefined;
@@ -55,7 +55,7 @@ type Esp32C3Metadata = {
   blockVersionMinor: number | undefined;
 };
 
-export async function readEsp32C3Metadata(loader: Esp32C3Loader): Promise<Esp32C3Metadata> {
+export async function readEsp32C3Metadata(loader: any): Promise<Esp32C3Metadata> {
   const readReg = (addr: number) => loader.readReg(addr);
 
   const getPkgVersion = async () => {

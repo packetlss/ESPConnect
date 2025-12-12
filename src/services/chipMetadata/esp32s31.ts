@@ -6,13 +6,13 @@ export const MAC_EFUSE_REG = EFUSE_BASE + 0x044;
 export const FLASH_WRITE_SIZE = 0x400;
 export const BOOTLOADER_FLASH_OFFSET = 0;
 
-type Loader = {
-  chipName?: string;
-  chipRevision?: number;
-  macAddr?: () => number[];
-};
+// type Loader = {
+//   chipName?: string;
+//   chipRevision?: number;
+//   macAddr?: () => number[];
+// };
 
-export async function readEsp32S31Metadata(loader: Loader) {
+export async function readEsp32S31Metadata(loader: any) {
   const mac = typeof loader.macAddr === 'function' ? safeMac(loader) : undefined;
   return {
     description: loader.chipName ?? CHIP_NAME,
@@ -32,7 +32,7 @@ export async function readEsp32S31Metadata(loader: Loader) {
   };
 }
 
-function safeMac(loader: Loader) {
+function safeMac(loader: any) {
   try {
     const mac = loader.macAddr?.();
     if (!Array.isArray(mac)) return undefined;

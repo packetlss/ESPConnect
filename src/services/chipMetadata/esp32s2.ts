@@ -82,12 +82,12 @@ export const UART_DATE_REG_ADDR = 0x60000078;
 export const FLASH_WRITE_SIZE = 0x400;
 export const BOOTLOADER_FLASH_OFFSET = 0x1000;
 
-type Esp32S2Loader = {
-  readReg: (addr: number) => Promise<number>;
-  macAddr?: () => number[];
-  chipRevision?: number;
-  chipName?: string;
-};
+// type Esp32S2Loader = {
+//   readReg: (addr: number) => Promise<number>;
+//   macAddr?: () => number[];
+//   chipRevision?: number;
+//   chipName?: string;
+// };
 
 type Esp32S2Metadata = {
   description: string | undefined;
@@ -106,7 +106,7 @@ type Esp32S2Metadata = {
   blockVersionMinor: number | undefined;
 };
 
-export async function readEsp32S2Metadata(loader: Esp32S2Loader): Promise<Esp32S2Metadata> {
+export async function readEsp32S2Metadata(loader: any): Promise<Esp32S2Metadata> {
   const readReg = (addr: number) => loader.readReg(addr);
 
   const getPkgVersion = async () => {
