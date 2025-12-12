@@ -19,10 +19,9 @@ import {
   CHIP_FAMILY_ESP32P4,
   ESP_ROM_BAUD,
   ESP_SPI_FLASH_MD5,
-  getSpiFlashAddresses,
   timeoutPerMb,
 } from 'tasmota-webserial-esptool/dist/const.js';
-import { buildSecurityFacts, SecurityInfo, type SecurityFact } from "./securityInfo";
+import { buildSecurityFacts, type SecurityFact } from "./securityInfo";
 import { pack } from 'tasmota-webserial-esptool/dist/struct.js';
 import { DEBUG_SERIAL, DEFAULT_ROM_BAUD } from '../constants/usb';
 import { readEsp32S3Metadata } from './chipMetadata/esp32s3';
