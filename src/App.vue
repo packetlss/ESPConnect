@@ -3209,6 +3209,13 @@ type StopMonitorOptions = {
   closeConnection?: boolean;
 };
 
+type DownloadFlashOptions = {
+  label?: string;
+  fileName?: string;
+  suppressStatus?: boolean;
+  onProgress?: (progress: WriteFilesystemProgress) => void;
+};
+
 // Write a filesystem image to flash with progress callbacks.
 async function writeFilesystemImage(partition: any, image: Uint8Array | ArrayBuffer, options: WriteFilesystemOptions = {}) {
   const { onProgress, label = 'filesystem', state, compress = true } = options;
@@ -5827,7 +5834,7 @@ function formatBackupTimestamp(date = new Date()) {
 }
 
 // Read a flash region and trigger a download with optional progress handling.
-async function downloadFlashRegion(offset, length, options = {}) {
+async function downloadFlashRegion(offset: number, length: number, options: DownloadFlashOptions = {}) {
   if (!loader.value) {
     throw new Error('Device not connected.');
   }
