@@ -163,22 +163,6 @@ class CompatibleTransport {
     this.reader = this.virtualReader;
   }
 
-  async setDTR(state: boolean) {
-    try {
-      await this.device.setSignals({ dataTerminalReady: state });
-    } catch {
-      // swallow
-    }
-  }
-
-  async setRTS(state: boolean) {
-    try {
-      await this.device.setSignals({ requestToSend: state });
-    } catch {
-      // swallow
-    }
-  }
-
   async *rawRead() {
     // Stream raw bytes from the loader's shared input buffer without fighting the bootloader reader lock.
     while (true) {
