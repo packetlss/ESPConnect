@@ -682,6 +682,7 @@ import { parseNvsPartition, type NvsParseResult } from './lib/nvs/nvsParser';
 import type { AppPartitionMetadata } from './types/app-partitions';
 import type { DeviceDetails } from './types/device-details';
 import type { FilePreviewInfo } from './types/filesystem';
+import type { LittlefsDiskVersionFormatter, LittlefsEntry, LittlefsEntryType, LittlefsUploadPayload } from './types/littlefs';
 import type {
   AlertType,
   PartitionOptionValue,
@@ -692,7 +693,7 @@ import type {
 
 let littlefsModulePromise = null;
 let fatfsModulePromise = null;
-const littlefsFormatDiskVersion = ref<((version: number) => string) | null>(null);
+const littlefsFormatDiskVersion = ref<LittlefsDiskVersionFormatter | null>(null);
 
 // Lazy-load and cache the LittleFS WASM module.
 async function loadLittlefsModule() {
@@ -778,15 +779,25 @@ async function loadFatfsModule() {
 }
 
 // Normalize LittleFS entry objects and paths into a consistent structure.
-function normalizeLittlefsEntries(entries, basePath = '/') {
+function normalizeLittlefsEntries(entries: unknown, basePath = '/'): LittlefsEntry[] {
   if (!Array.isArray(entries)) {
     return [];
   }
   const base = normalizeFsPath(basePath || '/');
   const baseName = base.split('/').filter(Boolean).pop() || '';
+
+  type RawLittlefsEntry = {
+    path?: unknown;
+    name?: unknown;
+    size?: unknown;
+    isDirectory?: unknown;
+    type?: unknown;
+  };
+
   return entries
     .map(entry => {
-      const rawPath = (entry?.path ?? entry?.name ?? '').toString();
+      const rawEntry = entry as RawLittlefsEntry | null | undefined;
+      const rawPath = String(rawEntry?.path ?? rawEntry?.name ?? '');
       let path = rawPath;
       if (!path.startsWith('/')) {
         const strippedBase = base.replace(/^\//, '');
@@ -808,15 +819,16 @@ function normalizeLittlefsEntries(entries, basePath = '/') {
       }
       const segments = path.split('/').filter(Boolean);
       const name = segments[segments.length - 1] || '';
-      const isDir = entry?.isDirectory === true || entry?.type === 'dir';
+      const isDir = rawEntry?.isDirectory === true || rawEntry?.type === 'dir';
+      const type: LittlefsEntryType = isDir ? 'dir' : 'file';
       return {
         name,
         path,
-        type: isDir ? 'dir' : 'file',
-        size: Number(entry?.size ?? 0) || 0,
+        type,
+        size: Number(rawEntry?.size ?? 0) || 0,
       };
     })
-    .filter(Boolean);
+    .filter((entry): entry is LittlefsEntry => Boolean(entry));
 }
 
 // Detect common signatures that indicate an unformatted LittleFS image.
@@ -1221,7 +1233,7 @@ async function handleLittlefsRestore(file) {
 }
 
 // Validate a selected file before queueing a LittleFS upload.
-function handleLittlefsUploadSelection(file) {
+function handleLittlefsUploadSelection(file: File | null) {
   if (!file || !littlefsState.client) {
     littlefsState.uploadBlocked = false;
     littlefsState.uploadBlockedReason = '';
@@ -1254,15 +1266,15 @@ function handleLittlefsUploadSelection(file) {
 }
 
 // Queue a LittleFS upload while serializing concurrent writes.
-async function handleLittlefsUpload(payload) {
+async function handleLittlefsUpload(payload: LittlefsUploadPayload) {
   // serialize uploads to avoid parallel free-space races
   littlefsUploadQueue = littlefsUploadQueue.then(() => performLittlefsUpload(payload));
   return littlefsUploadQueue;
 }
 
 // Perform a LittleFS upload or folder creation with size and conflict checks.
-async function performLittlefsUpload(payload) {
-  const { file, path, isDir } = payload || {};
+async function performLittlefsUpload(payload: LittlefsUploadPayload) {
+  const { file, path, isDir } = payload;
   if (littlefsState.uploadBlocked) {
     console.warn('[ESPConnect-LittleFS] upload skipped because blocked', {
       path,
