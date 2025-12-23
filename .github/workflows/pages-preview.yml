@@ -36,18 +36,6 @@ jobs:
       - name: Build
         run: npm run build
 
-       # 🔍 DEBUG: verify build output exists
-      - name: Inspect dist output
-        run: |
-          echo "Workspace contents:"
-          ls -la
-          echo ""
-          echo "dist contents:"
-          ls -la dist || true
-          echo ""
-          echo "First files in dist:"
-          find dist -maxdepth 2 -type f | head -50 || true       
-
       # Deploy dist/ into gh-pages/preview/
       - name: Deploy to gh-pages (preview)
         uses: peaceiris/actions-gh-pages@v4
