@@ -13,6 +13,7 @@ This replaces the previous DOM-based translation shim with a fully reactive, mai
 ### Internal
 - Remove unused legacy code that was needed for esptool-js
 - CI now zips the built dist/ directory, uploads it, and includes it in release downloads so the static web bundle can be grab directly
+- npm run build now do a typecheck
 
 ### New Contributors
 - [Patriboom](https://github.com/Patriboom) made their first contribution in ([PR #85](https://github.com/thelastoutpostworkshop/ESPConnect/pull/85))
