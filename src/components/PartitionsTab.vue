@@ -32,8 +32,11 @@
             {{ t('partitions.alerts.resources.tutorial') }}
           </a>
           {{ t('partitions.alerts.unusedFlash.or') }}
-          <a href="https://thelastoutpostworkshop.github.io/microcontroller_devkit/esp32partitionbuilder/"
-            target="_blank" rel="noopener noreferrer">
+          <a
+            :href="PARTITION_BUILDER_URL"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             {{ t('partitions.alerts.resources.builder') }}
           </a>.
         </div>
@@ -44,8 +47,11 @@
           {{ t('partitions.alerts.resources.tutorial') }}
         </a>
         {{ t('partitions.alerts.customizeOr') }}
-        <a href="https://thelastoutpostworkshop.github.io/microcontroller_devkit/esp32partitionbuilder/"
-          target="_blank" rel="noopener noreferrer">
+        <a
+          :href="PARTITION_BUILDER_URL"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           {{ t('partitions.alerts.resources.builder') }}
         </a>.
       </v-alert>
@@ -140,6 +146,8 @@ const props = withDefaults(
 
 const { partitionSegments, formattedPartitions, unusedSummary, flashSizeLabel } = toRefs(props);
 const { t } = useI18n();
+
+const PARTITION_BUILDER_URL = 'https://thelastoutpostworkshop.github.io/ESP32PartitionBuilder/';
 
 const showUnusedAlert = computed(() => Boolean(unusedSummary.value));
 const unusedReadable = computed(() => unusedSummary.value?.readable ?? '');
