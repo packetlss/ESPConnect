@@ -27,38 +27,6 @@ async function waitForImprovPacket(ctx: DetectorContext, ms: number): Promise<Im
   return null;
 }
 
-function packetDetails(p: ImprovPacket): Record<string, string> | undefined {
-  if (p.type === 0x01 && p.length === 1) {
-    const state = p.data[0]!;
-    const name = state === 0x02
-      ? 'Ready (Authorized)'
-      : state === 0x03
-        ? 'Provisioning'
-        : state === 0x04
-          ? 'Provisioned'
-          : 'Unknown';
-    return { packet: 'Current State', state: `0x${state.toString(16).padStart(2, '0')}`, stateName: name };
-  }
-  if (p.type === 0x02 && p.length === 1) {
-    const code = p.data[0]!;
-    const name = code === 0x00
-      ? 'No error'
-      : code === 0x01
-        ? 'Invalid RPC packet'
-        : code === 0x02
-          ? 'Unknown RPC command'
-          : code === 0x03
-            ? 'Unable to connect'
-            : code === 0x05
-              ? 'Bad Hostname'
-              : code === 0xff
-                ? 'Unknown Error'
-                : 'Unknown';
-    return { packet: 'Error State', error: `0x${code.toString(16).padStart(2, '0')}`, errorName: name };
-  }
-  return undefined;
-}
-
 export const improvSerialDetector: Detector = {
   id: 'improv-serial',
   name: 'Improv Serial',
