@@ -1,5 +1,7 @@
 # Changelog
 
+## 1.1.4-preview
+
 ## 1.1.3
 ### Improvement
 - Session log now shows the version of tasmota-webserial-esptool package along with a timestamp
