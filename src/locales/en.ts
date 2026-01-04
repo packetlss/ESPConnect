@@ -58,6 +58,7 @@
       stop: 'Stop',
       pause: 'Pause',
       resume: 'Resume',
+      copy: 'Copy',
       clear: 'Clear',
       reset: 'Reset',
     },
@@ -67,6 +68,8 @@
     info:
       'Starting the serial monitor resets the board into normal firmware mode so you can view UART output. Stopping the serial monitor automatically re-enters bootloader (stub) mode for maintenance (flash, partition tools, etc.).',
     emptyState: 'Monitor output will appear here once started.',
+    copySuccess: 'Serial monitor copied to clipboard.',
+    copyError: 'Unable to copy serial monitor output. Please try again.',
   },
   dialogs: {
     connecting: 'Connecting',

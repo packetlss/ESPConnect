@@ -58,6 +58,7 @@
       stop: 'Arrêter',
       pause: 'Pause',
       resume: 'Relancer',
+      copy: 'Copier',
       clear: 'Vider',
       reset: 'RAZ',
     },
@@ -67,6 +68,8 @@
     info:
       'Démarrer le moniteur série relance le micro-contrôleur en mode « normal ».  Arrêter le moniteur série remettra le micro-contrôleur en mode « configuration ».',
     emptyState: 'Le moniteur apparaîtra ici lorsqu`il sera démarré.',
+    copySuccess: 'Moniteur serie copie dans le presse-papier.',
+    copyError: 'Impossible de copier la sortie du moniteur. Veuillez reessayer.',
   },
   dialogs: {
     connecting: 'Connexion en cours',

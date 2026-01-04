@@ -4,6 +4,7 @@
 
 ### Improvement
 - Serial Monitor now renders ANSI color/style escape sequences in the output.
+- Serial Monitor adds a copy-to-clipboard action.
 
 ### Internal
 - Removed the decorateLoader shim since it's no longer needed with tasmota-webserial-esptool

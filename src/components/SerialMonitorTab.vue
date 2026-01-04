@@ -52,6 +52,17 @@
             {{ paused ? t('serialMonitor.actions.resume') : t('serialMonitor.actions.pause') }}
           </v-btn>
           <v-btn
+            color="primary"
+            variant="text"
+            size="small"
+            prepend-icon="mdi-content-copy"
+            :disabled="!hasMonitorOutput || copying"
+            :loading="copying"
+            @click="copyMonitor"
+          >
+            {{ t('serialMonitor.actions.copy') }}
+          </v-btn>
+          <v-btn
             color="secondary"
             variant="text"
             size="small"
@@ -116,6 +127,14 @@
     >
       {{ monitorError }}
     </v-alert>
+    <v-snackbar
+      v-model="copyFeedback.visible"
+      :color="copyFeedback.color"
+      :timeout="2000"
+      location="bottom right"
+    >
+      {{ copyFeedback.message }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -140,6 +159,12 @@ const terminalEl = ref<unknown>(null);
 const filterText = ref('');
 const paused = ref(false);
 const pausedSnapshot = ref('');
+const copying = ref(false);
+const copyFeedback = ref({
+  visible: false,
+  message: '',
+  color: 'success',
+});
 
 type AnsiState = {
   fg: number | null;
@@ -416,6 +441,46 @@ const filteredLines = computed(() => {
 const displayHtml = computed(() => buildAnsiHtml(filteredLines.value));
 const displayPlainText = computed(() => filteredLines.value.map(line => line.plain).join('\n'));
 const hasMonitorOutput = computed(() => Boolean(displayPlainText.value && displayPlainText.value.length));
+
+async function copyMonitor(): Promise<void> {
+  const text = displayPlainText.value;
+  if (!text || copying.value) {
+    return;
+  }
+
+  try {
+    copying.value = true;
+    if (typeof navigator !== 'undefined' && navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else if (typeof document !== 'undefined') {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    } else {
+      throw new Error('Clipboard unavailable');
+    }
+    copyFeedback.value = {
+      visible: true,
+      message: t('serialMonitor.copySuccess'),
+      color: 'success',
+    };
+  } catch (error: unknown) {
+    console.error('Failed to copy serial monitor output', error);
+    copyFeedback.value = {
+      visible: true,
+      message: t('serialMonitor.copyError'),
+      color: 'error',
+    };
+  } finally {
+    copying.value = false;
+  }
+}
 
 watch(
   () => props.monitorText,
