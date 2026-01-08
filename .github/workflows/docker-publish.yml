@@ -2,7 +2,8 @@ name: Docker
 
 on:
   push:
-    branches: [ "main" ]
+    workflow_dispatch:
+    branches: [ "main" "add-container-generation" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
