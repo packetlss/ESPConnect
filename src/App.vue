@@ -723,13 +723,14 @@ import type {
 
 type LittlefsWasmModule = typeof import('./wasm/littlefs/index.js');
 type FatfsWasmModule = typeof import('./wasm/fatfs/index.js');
+type DetectedFilesystem = 'littlefs' | 'fatfs' | 'spiffs';
 type PartitionTableEntry = {
   label: string;
   type: number;
   subtype: number;
   offset: number;
   size: number;
-  detectedFilesystem?: string;
+  detectedFilesystem?: DetectedFilesystem;
 };
 type FilesystemPartition = { id: number; label: string; offset: number; size: number; sizeText: string };
 
@@ -4078,9 +4079,7 @@ const spiffsPartitions = computed(() =>
         typeof entry.type === 'number' &&
         typeof entry.subtype === 'number' &&
         entry.type === 0x01 &&
-        entry.subtype === 0x82 &&
-        // Show only partitions that are NOT detected as LittleFS
-        entry.detectedFilesystem !== 'littlefs',
+        (entry.detectedFilesystem ? entry.detectedFilesystem === 'spiffs' : entry.subtype === 0x82),
     )
     .map(entry => ({
       id: entry.offset,
@@ -4105,9 +4104,10 @@ const littleFsPartitions = computed(() =>
       if (entry.type !== 0x01) {
         return false;
       }
-      // LittleFS: dedicated subtype 0x83 OR 0x82 with detected LittleFS
-      return entry.subtype === 0x83 ||
-        (entry.subtype === 0x82 && entry.detectedFilesystem === 'littlefs');
+      if (entry.detectedFilesystem) {
+        return entry.detectedFilesystem === 'littlefs';
+      }
+      return entry.subtype === 0x83;
     })
     .map(entry => ({
       id: entry.offset,
@@ -4136,6 +4136,9 @@ const fatfsPartitions = computed(() =>
         return false;
       }
       const label = entry.label?.toLowerCase().trim() || '';
+      if (entry.detectedFilesystem) {
+        return entry.detectedFilesystem === 'fatfs';
+      }
       return entry.subtype === 0x81 || label.includes('fat');
     })
     .map(entry => ({

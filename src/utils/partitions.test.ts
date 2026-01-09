@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 import { detectFilesystemType, readPartitionTable } from './partitions';
 
 const textEncoder = new TextEncoder();
+const FIXTURE_ROOT = path.resolve(process.cwd(), 'src/tests/fixtures/fs-images');
+const FAT_FIXTURE = new Uint8Array(readFileSync(path.join(FIXTURE_ROOT, 'fat', 'fat.bin')));
+const MICROPY_FIXTURE = new Uint8Array(readFileSync(path.join(FIXTURE_ROOT, 'fat', 'fat-micropython1-25.bin')));
+const SPIFFS_FIXTURE = new Uint8Array(readFileSync(path.join(FIXTURE_ROOT, 'spiffs', 'spiffs.bin')));
+
+function makeFixtureLoader(image: Uint8Array) {
+  return {
+    readFlash: async (offset: number, length: number) => image.subarray(offset, offset + length),
+  };
+}
 
 function makePartitionEntry({
   type,
@@ -44,31 +56,46 @@ function makeTerminator() {
 
 describe('partition utilities', () => {
   describe('detectFilesystemType', () => {
-    it('defaults to SPIFFS when the read buffer is too small', async () => {
+    it('returns null when the read buffer is too small', async () => {
       const loader = {
         readFlash: async () => new Uint8Array(16),
       };
-      expect(await detectFilesystemType(loader, 0x1000, 0x2000)).toBe('spiffs');
+      expect(await detectFilesystemType(loader, 0x1000, 0x2000)).toBeNull();
     });
 
     it('detects LittleFS when the magic string is present', async () => {
       const loader = {
         readFlash: async (_offset: number, length: number) => {
           const data = new Uint8Array(length);
-          data.set(textEncoder.encode('hello littlefs world'));
+          data.set(textEncoder.encode('hello littlefs/ world'));
           return data;
         },
       };
       expect(await detectFilesystemType(loader, 0x1000, 0x2000)).toBe('littlefs');
     });
 
-    it('falls back to SPIFFS when readFlash throws', async () => {
+    it('returns null when readFlash throws', async () => {
       const loader = {
         readFlash: async () => {
           throw new Error('boom');
         },
       };
-      expect(await detectFilesystemType(loader, 0x1000, 0x2000)).toBe('spiffs');
+      expect(await detectFilesystemType(loader, 0x1000, 0x2000)).toBeNull();
+    });
+
+    it('detects FAT from a valid boot sector', async () => {
+      const loader = makeFixtureLoader(FAT_FIXTURE);
+      expect(await detectFilesystemType(loader, 0, FAT_FIXTURE.length)).toBe('fatfs');
+    });
+
+    it('detects SPIFFS from fixture pages', async () => {
+      const loader = makeFixtureLoader(SPIFFS_FIXTURE);
+      expect(await detectFilesystemType(loader, 0, SPIFFS_FIXTURE.length)).toBe('spiffs');
+    });
+
+    it('detects LittleFS in MicroPython FAT-labeled fixture', async () => {
+      const loader = makeFixtureLoader(MICROPY_FIXTURE);
+      expect(await detectFilesystemType(loader, 0, MICROPY_FIXTURE.length)).toBe('littlefs');
     });
   });
 
@@ -88,7 +115,7 @@ describe('partition utilities', () => {
       const entry = makePartitionEntry({ type: 0x01, subtype: 0x82, offset: 0x1000, size: 0x2000, label: fsLabel });
       const table = createPartitionTable([entry, makeTerminator()]);
 
-      const littleFsContent = textEncoder.encode('greeting littlefs - test');
+      const littleFsContent = textEncoder.encode('greeting littlefs/ - test');
       const fsMap = new Map<number, Uint8Array>([
         [0x1000, littleFsContent],
       ]);
